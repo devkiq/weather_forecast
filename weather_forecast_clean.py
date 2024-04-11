@@ -2,15 +2,16 @@ import requests
 import os
 import json
 
-# Função para buscar dados de previsão do tempo da API:
-def fetch_weather_data(city, api_key, units='metric'):
-    url = f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units={units}'
+# Função para buscar dados de previsão do tempo da API, agora com cidade e estado:
+def fetch_weather_data(city, state, api_key, units='metric'):
+    city_state_country = f"{city},{state},BR"  # Assumindo Brasil como país. Modifique conforme necessário.
+    url = f"http://api.openweathermap.org/data/2.5/weather?q={city_state_country}&appid={api_key}&units={units}"
     try:
         response = requests.get(url)
-        response.raise_for_status() # Levanta uma exceção se a resposta indicar um erro HTTP
+        response.raise_for_status()  # Levanta uma exceção se a resposta indicar um erro HTTP
 
-        #Cache de resultados
-        cache_filename = f'{city}_{units}.json'
+        # Cache de resultados
+        cache_filename = f'{city}_{state}_{units}.json'
         if os.path.exists(cache_filename):
             with open(cache_filename, 'r') as cache_file:
                 return json.load(cache_file)
@@ -21,14 +22,14 @@ def fetch_weather_data(city, api_key, units='metric'):
             return data
     except requests.exceptions.HTTPError as http_err:
         if response.status_code == 401:
-            print("Verifique sua chave API do OPenWeatherMap. Parece ser inválida")
+            print("Verifique sua chave API do OpenWeatherMap. Parece ser inválida")
         else:
-            print(f'Erro HTTP: `{http_err}')
+            print(f'Erro HTTP: `{http_err}`')
     except requests.exceptions.RequestException as req_err:
         print(f'Erro ao buscar os dados da previsão do tempo: {req_err}')
     except Exception as e:
         print(f'Erro inesperado: {e}')
-    return None 
+    return None
 
 # Função para exibir a previsão de tempo
 def display_weather_forecast(data):
@@ -70,8 +71,9 @@ def main():
         api_key = input("Digite sua chave da API do OpenWeatherMap: ")
 
     city = input("Digite o nome da cidade: ")
+    state = input("Digite a sigla do estado (BR): ")  # Pede ao usuário a sigla do estado
     
-    weather_data = fetch_weather_data(city, api_key, units)
+    weather_data = fetch_weather_data(city, state, api_key, units)
     if weather_data:
         display_weather_forecast(weather_data)
 
